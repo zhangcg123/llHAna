@@ -10,7 +10,6 @@ class llHAna : public GaudiAlgorithm {
 public:
     // Constructor and destructor
     llHAna(const std::string& name, ISvcLocator* pSvcLocator);
-
     // GaudiAlgorithm methods
     virtual StatusCode initialize() override;
     virtual StatusCode execute() override;
