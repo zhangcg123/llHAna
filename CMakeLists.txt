@@ -1,13 +1,14 @@
-
 gaudi_add_module(llHAna
-                 SOURCES src/llHAna.cc
-                 LINK k4FWCore::k4FWCore 
+                 SOURCES src/llHAna.cpp
+                 LINK DataHelperLib 
+		      k4FWCore::k4FWCore
                       Gaudi::GaudiKernel 
-                      Gaudi::GaudiAlgLib 
+                      Gaudi::GaudiAlgLib
+		      EDM4HEP::edm4hep
+		      EDM4HEP::edm4hepDict
                       ${CLHEP_LIBRARIES} 
                       ${GSL_LIBRARIES}
                       ${LCIO_LIBRARIES}
-                      EDM4HEP::edm4hep EDM4HEP::edm4hepDict
                       ${ROOT_LIBRARIES}
 )
 
