@@ -9,7 +9,6 @@ DECLARE_COMPONENT(llHAna)
 llHAna::llHAna(const std::string& name, ISvcLocator* pSvcLocator)
     : GaudiAlgorithm(name, pSvcLocator) {
         declareProperty("MCParticleCollection", mcParticleCol, "Handle for the MCParticleCollection");
-        declareProperty("ReconstructedParticleCollection", recoParticleCol, "Handle for the ReconstructedParticleCollection");   
     
     }
 
@@ -26,7 +25,6 @@ StatusCode llHAna::execute() {
     // Get the MCParticleCollection
     const edm4hep::MCParticleCollection* mcParticles = mcParticleCol.get();
     // Get the ReconstructedParticleCollection
-    const edm4hep::ReconstructedParticleCollection* recoParticles = recoParticleCol.get();
 
     // Print the number of MCParticles
     debug() << "Number of MCParticles: " << mcParticles->size() << endmsg;

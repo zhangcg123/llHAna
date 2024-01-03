@@ -21,7 +21,5 @@ private:
     double energy;
 
     // DataHandle for the MCParticleCollection
-    DataHandle<edm4hep::MCParticleCollection> mcParticleCol{"MCParticles", Gaudi::DataHandle::Reader, this};
-    // DataHandle for the ReconstructedParticleCollection
-    DataHandle<edm4hep::ReconstructedParticleCollection> recoParticleCol{"ReconstructedParticles", Gaudi::DataHandle::Reader, this};
+    DataHandle<edm4hep::MCParticleCollection> mcParticleCol{"MCParticle", Gaudi::DataHandle::Reader, this};
 };
