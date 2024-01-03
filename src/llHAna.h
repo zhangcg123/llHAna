@@ -2,6 +2,7 @@
 #include "GaudiAlg/GaudiAlgorithm.h"
 #include "k4FWCore/DataHandle.h" 
 #include "edm4hep/MCParticleCollection.h"
+#include "edm4hep/ReconstructedParticleCollection.h"
 #include "TFile.h"
 #include "TTree.h"
 
@@ -23,4 +24,6 @@ private:
 
     // DataHandle for the MCParticleCollection
     DataHandle<edm4hep::MCParticleCollection> mcParticleCol{"MCParticles", Gaudi::DataHandle::Reader, this};
+    // DataHandle for the ReconstructedParticleCollection
+    DataHandle<edm4hep::ReconstructedParticleCollection> recoParticleCol{"ReconstructedParticles", Gaudi::DataHandle::Reader, this};
 };
