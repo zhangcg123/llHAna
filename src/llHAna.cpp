@@ -24,6 +24,13 @@ StatusCode llHAna::initialize() {
     cutFlow->GetXaxis()->SetBinLabel(5, "pT Cut");
     cutFlow->GetXaxis()->SetBinLabel(6, "Delta Phi");
 
+    Eventcounter = new TH1D("Eventcounter", "", 5, 0, 5);
+    Eventcounter->GetXaxis()->SetBinLabel(1, "One Lepton");
+    Eventcounter->GetXaxis()->SetBinLabel(2, "Two Lepton");
+    Eventcounter->GetXaxis()->SetBinLabel(3, "Three Lepton");
+    Eventcounter->GetXaxis()->SetBinLabel(4, "Four Lepton");
+    Eventcounter->GetXaxis()->SetBinLabel(5, "Five Lepton");
+
 
     rootFile = TFile::Open("llHAna.root", "RECREATE");
     tree = new TTree("llHAna", "llHAna");
@@ -64,7 +71,7 @@ StatusCode llHAna::execute() {
 
     debug() << "Executing llHAna" << endmsg;
 
-    cutFlow->SetBinContent(1, cutFlow->GetBinContent(1) + 1);
+    cutFlow->SetBinContent(1, cutFlow->GetBinContent(1) + 1);// no cuts applied
 
     const edm4hep::MCParticleCollection* mcParticleCollection = mcParticleCol.get();
 
@@ -85,16 +92,46 @@ StatusCode llHAna::execute() {
 
     }
 
-    if ( pos_particles.size() != 1 || neg_particles.size() != 1 ){
+    if ( pos_particles.size() == 0 || neg_particles.size() ==0 ){
 
         return StatusCode::SUCCESS;
 
     }else{
 
-        cutFlow->SetBinContent(2, cutFlow->GetBinContent(2) + 1);
+        cutFlow->SetBinContent(2, cutFlow->GetBinContent(2) + 1); // SFOS pair
 
-        edm4hep::ReconstructedParticle pos_particle = pos_particles.at(0);
-        edm4hep::ReconstructedParticle neg_particle = neg_particles.at(0);
+        // multicombination
+        std::map<double, std::map<int ,int>> combinations;
+        combinations.clear();
+        std::map<int ,int> a_pair;
+        a_pair.clear();
+
+        for ( int pos_i = 0; pos_i < pos_particles.size(); pos_i++ ){
+            for ( int neg_i = 0; neg_i < neg_particles.size(); neg_i++ ){
+
+                edm4hep::ReconstructedParticle pos_particle = pos_particles.at(pos_i);
+                edm4hep::ReconstructedParticle neg_particle = neg_particles.at(neg_i);
+
+                TLorentzVector lep1, lep2;
+                lep1.SetPxPyPzE( pos_particle.getMomentum()[0], pos_particle.getMomentum()[1], pos_particle.getMomentum()[2], pos_particle.getEnergy() );
+                lep2.SetPxPyPzE( neg_particle.getMomentum()[0], neg_particle.getMomentum()[1], neg_particle.getMomentum()[2], neg_particle.getEnergy() );
+
+                TLorentzVector ll = lep1 + lep2;
+
+                double mass_differece = std::abs(ll.M() - Z_mass);
+
+                a_pair.insert(std::make_pair(pos_i, neg_i));
+                combinations.insert(std::make_pair(mass_differece, a_pair));
+
+            }
+        }
+        
+        auto the_pair = combinations.begin()->second;
+        int pos_pin = the_pair.begin()->first;
+        int neg_pin = the_pair.begin()->second;
+
+        edm4hep::ReconstructedParticle pos_particle = pos_particles.at(pos_pin);
+        edm4hep::ReconstructedParticle neg_particle = neg_particles.at(neg_pin);
 
         pos_energy = pos_particle.getEnergy();
         neg_energy = neg_particle.getEnergy();
@@ -137,24 +174,37 @@ StatusCode llHAna::execute() {
         if ( recoil_mass < 150.0 && recoil_mass > 120.0 ){
                 
                 cutFlow->SetBinContent(3, cutFlow->GetBinContent(3) + 1);
+        
+        }else{
+
+                return StatusCode::SUCCESS;
         }
 
         if ( ll_mass < 100. && ll_mass > 80. ){
 
                 cutFlow->SetBinContent(4, cutFlow->GetBinContent(4) + 1);
+        }else{
+
+                return StatusCode::SUCCESS;
+        
         }
 
         if ( pos_pt > 20. && neg_pt > 20. ){
 
                 cutFlow->SetBinContent(5, cutFlow->GetBinContent(5) + 1);
+        }else{
+
+                return StatusCode::SUCCESS;
+        
         }
         
         info() << "llHAna: " << "ll_mass = " << ll_mass << endmsg;
         info() << "recoil_mass = " << recoil_mass << endmsg;
         
-	tree->Fill();
+	    tree->Fill();
 
     }
+    
     return StatusCode::SUCCESS;
 
 }
@@ -167,6 +217,7 @@ StatusCode llHAna::finalize() {
     rootFile->cd();
     tree->Write();
     cutFlow->Write();
+    Eventcounter->Write();
     rootFile->Close();
     return GaudiAlgorithm::finalize();
 }

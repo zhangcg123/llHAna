@@ -31,8 +31,11 @@ private:
     TFile* rootFile;
     TTree* tree;
     TH1D* cutFlow; 
+    TH1D* Eventcounter;
 
     TLorentzVector S;
+
+    double Z_mass = 91.1876;
 
     // DataHandle for the MCParticleCollection
     DataHandle<edm4hep::MCParticleCollection> mcParticleCol{"MCParticle", Gaudi::DataHandle::Reader, this};
