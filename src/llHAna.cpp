@@ -9,6 +9,7 @@ llHAna::llHAna(const std::string& name, ISvcLocator* pSvcLocator)
         declareProperty("MCParticleCollection", mcParticleCol, "Handle for the MCParticleCollection");
         declareProperty("ReconstructedParticleCollection", recParticleCol, "Handle for the ReconstructedParticleCollection");
         //declareProperty("MCTruthLinkCollection", mcTruthLinkCol, "Handle for the MCTruthLinkCollection");
+        declareProperty("OutputFileName", filename = "llHAna.root", "Name of the output file");
     }
 
 // Method to initialize your analysis
@@ -31,8 +32,8 @@ StatusCode llHAna::initialize() {
     Eventcounter->GetXaxis()->SetBinLabel(4, "Four Lepton");
     Eventcounter->GetXaxis()->SetBinLabel(5, "Five Lepton");
 
-
-    rootFile = TFile::Open("llHAna.root", "RECREATE");
+    //string to char*
+    rootFile = TFile::Open(filename.c_str(), "RECREATE");
     tree = new TTree("llHAna", "llHAna");
     tree->SetAutoSave(32*1024*1024);
     tree->Branch("pos_energy", &pos_energy);
@@ -213,11 +214,11 @@ StatusCode llHAna::execute() {
 StatusCode llHAna::finalize() {
     // Finalization code goes here
 
-    cutFlow->Scale(1./cutFlow->GetBinContent(1));
+    //cutFlow->Scale(1./cutFlow->GetBinContent(1));
     rootFile->cd();
     tree->Write();
     cutFlow->Write();
-    Eventcounter->Write();
+    //Eventcounter->Write();
     rootFile->Close();
     return GaudiAlgorithm::finalize();
 }
