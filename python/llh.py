@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-processname = '/cms/user/zhangcg/cepc/CEPCSW/Analysis/llHAna/E240.Pe2e2h_X.e0.p0.whizard195'
+import os
+#ithpart = os.environ['ITHPART']
+processname = '/cms/user/zhangcg/cepc/CEPCSW/Analysis/llHAna/E240.Pe2e2h_X.e0.p0.whizard195'#_'+str(ithpart)
 
 
 from Gaudi.Configuration import *
@@ -13,7 +15,15 @@ lcioinput = LCIOInput("lcioinput")
 
 import json
 inputs = json.load(open(processname+".json")) 
-lcioinput.inputs = inputs
+
+import math
+chuck_size = math.ceil( len(inputs)/10 )
+groups = [inputs[i:i+chuck_size] for i in range(0, len(inputs), chuck_size)]
+
+ith = os.environ['ITH']
+ith = int(ith)
+
+lcioinput.inputs = groups[ith]
 lcioinput.collections = [ 
     "MCParticle:MCParticle",
     "ReconstructedParticle:ArborPFOs",
@@ -22,14 +32,13 @@ lcioinput.collections = [
 
 from Configurables import llHAna
 llHAna = llHAna("llHAna")
-llHAna.OutputFileName = processname + ".root"
+llHAna.OutputFileName = processname + "_" + str(ith) + ".root"
 
 # ApplicationMgr
 from Configurables import ApplicationMgr
 ApplicationMgr( TopAlg = [lcioinput, llHAna],
                 EvtSel = 'NONE',
-                EvtMax = 10,
+                EvtMax = -1,
                 ExtSvc = [dsvc],
                 OutputLevel=INFO #DEBUG
 )
-

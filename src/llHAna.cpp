@@ -10,6 +10,7 @@ llHAna::llHAna(const std::string& name, ISvcLocator* pSvcLocator)
         declareProperty("ReconstructedParticleCollection", recParticleCol, "Handle for the ReconstructedParticleCollection");
         //declareProperty("MCTruthLinkCollection", mcTruthLinkCol, "Handle for the MCTruthLinkCollection");
         declareProperty("OutputFileName", filename = "llHAna.root", "Name of the output file");
+        declareProperty("PID", PID = 13, "PID of the particle");
     }
 
 // Method to initialize your analysis
@@ -24,13 +25,6 @@ StatusCode llHAna::initialize() {
     cutFlow->GetXaxis()->SetBinLabel(4, "Z Mass");
     cutFlow->GetXaxis()->SetBinLabel(5, "pT Cut");
     cutFlow->GetXaxis()->SetBinLabel(6, "Delta Phi");
-
-    Eventcounter = new TH1D("Eventcounter", "", 5, 0, 5);
-    Eventcounter->GetXaxis()->SetBinLabel(1, "One Lepton");
-    Eventcounter->GetXaxis()->SetBinLabel(2, "Two Lepton");
-    Eventcounter->GetXaxis()->SetBinLabel(3, "Three Lepton");
-    Eventcounter->GetXaxis()->SetBinLabel(4, "Four Lepton");
-    Eventcounter->GetXaxis()->SetBinLabel(5, "Five Lepton");
 
     //string to char*
     rootFile = TFile::Open(filename.c_str(), "RECREATE");
@@ -52,6 +46,9 @@ StatusCode llHAna::initialize() {
     tree->Branch("neg_p", &neg_p);
     tree->Branch("neg_eta", &neg_eta);
     tree->Branch("neg_phi", &neg_phi);
+
+    tree->Branch("ll_acollinearity", &ll_acollinearity);
+    tree->Branch("ll_acoplanarity", &ll_acoplanarity);
 
     tree->Branch("ll_energy", &ll_energy);
     tree->Branch("ll_px", &ll_px);
@@ -149,6 +146,17 @@ StatusCode llHAna::execute() {
         lep1.SetPxPyPzE( pos_px, pos_py, pos_pz, pos_energy );
         lep2.SetPxPyPzE( neg_px, neg_py, neg_pz, neg_energy );
 
+        ll_acollinearity = lep1.Angle(lep2.Vect());
+        // rad to grad
+        ll_acollinearity = ll_acollinearity * 180. / TMath::Pi();
+        ll_acoplanarity = std::abs(lep1.Phi() - lep2.Phi());
+        // rad to grad
+        ll_acoplanarity = ll_acoplanarity * 180. / TMath::Pi();
+
+        info() << "ll_acollinearity = " << ll_acollinearity << " ll_acoplanarity = " << ll_acoplanarity << endmsg;
+
+        return StatusCode::SUCCESS;
+
         pos_pt = lep1.Pt();
         neg_pt = lep2.Pt();
         pos_p = lep1.P();
@@ -190,7 +198,7 @@ StatusCode llHAna::execute() {
         
         }
 
-        if ( pos_pt > 20. && neg_pt > 20. ){
+        if ( ll_pt > 20. ){
 
                 cutFlow->SetBinContent(5, cutFlow->GetBinContent(5) + 1);
         }else{
