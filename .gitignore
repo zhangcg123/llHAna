@@ -1,3 +1,5 @@
 *.root
 *.json
-listsamples.py
+orgniseinputs.py
+# dir of Ntuple
+Ntuple
